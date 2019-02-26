@@ -1,11 +1,11 @@
 warnings off
-require mf/mf.f
 
 variable 'empty
 : rl  'empty @ execute s" format.f" included ;
 marker empty
 ' empty 'empty !
 
+require mf/mf.f
 
 ( Table of xts )
                58 constant items/table
@@ -24,29 +24,22 @@ create 'table /table allot
 variable fbuf-position
 create fbuf /fbuf allot
 
-: 0fbuf  fbuf /fbuf erase  /fbuf 1- fbuf-position ! ;
+: 0fbuf  fbuf /fbuf erase  /fbuf fbuf-position ! ;
 : .fbuf  fbuf /fbuf dump ;
 
 0fbuf
 
-: remaining  ( - u )  fbuf-position @ 1+ ;
+: remaining  ( - u )  fbuf-position @ ;
+: used       ( - u )  /fbuf remaining - ;
 : fbuf-cur   ( - a )  fbuf fbuf-position @ + ;
-: fbuf>s  ( - a u )   fbuf-cur  /fbuf fbuf-position @ - ;
+: fbuf>s   ( - a u )  fbuf-cur used ;
 
-: ?space  ( n - )  remaining > abort" format: no space in formatting buffer" ;
-: ?exhausted       1 ?space ;
+: ?space  ( u - )  remaining > abort" format: no space in formatting buffer" ;
+: fbuf-   ( u - )  dup ?space  negate fbuf-position +! ;
+: fbuf-reserve  ( u - a )  fbuf- fbuf-cur ;
 
-: fbuf+  ( n - )  \ TODO check for overflow/underflow in both directions
-  dup ?space fbuf-position +! ;
-
-: fbuf-  ( n - )  negate fbuf+ ;
-
-: fbuf-reserve  ( u - a )  fbuf- fbuf-cur 1+ ;
-
-: >fbuf   ( a u - )  \ may truncate the output
-  dup ?space  remaining min  dup fbuf-reserve  swap move ;
-
-: b>fbuf    ( b - )  ?exhausted  fbuf-cur c!  1 fbuf- ;
+: >fbuf  ( a u - )  dup fbuf-reserve  swap move ;
+: b>fbuf   ( b - )  1 fbuf-reserve c! ;
 
 
 ( Format operations )
